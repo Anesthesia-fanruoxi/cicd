@@ -14,7 +14,8 @@ import (
 // UnifiedNotificationData 统一通知数据结构
 type UnifiedNotificationData struct {
 	// 通用字段
-	IsStep bool `json:"isset"` // true=步骤通知, false=任务通知
+	IsStep    bool   `json:"isset"` // true=步骤通知, false=任务通知
+	CreatedBy string `json:"created_by,omitempty"`
 
 	// 任务通知字段
 	ID           string `json:"id"`                      // 任务ID
@@ -87,6 +88,7 @@ func NotifyTaskCreate(task *models.Task) error {
 	// 构建任务创建通知数据
 	notificationData := UnifiedNotificationData{
 		IsStep:       false, // 任务通知
+		CreatedBy:    task.CreatedByName,
 		ID:           task.ID,
 		Name:         task.Name,
 		ProjectName:  task.ProjectInfo.ProjectName + "-" + typeName,
@@ -94,12 +96,11 @@ func NotifyTaskCreate(task *models.Task) error {
 		GitURL:       gitURL,
 		UpdateFeishu: task.ProjectInfo.UpdateFeishu,
 		NotifyFeishu: task.ProjectInfo.NotifyFeishu,
-
-		StartedAt:  startedAtStr,
-		Type:       task.Type, // 任务类型（web/double/single）
-		TypeName:   typeName,  // 任务类型中文名称
-		FinishedAt: "",        // 创建时为空
-		Status:     "running",
+		StartedAt:    startedAtStr,
+		Type:         task.Type, // 任务类型（web/double/single）
+		TypeName:     typeName,  // 任务类型中文名称
+		FinishedAt:   "",        // 创建时为空
+		Status:       "running",
 	}
 
 	// 序列化为JSON
@@ -166,6 +167,7 @@ func NotifyTaskComplete(task *models.Task) error {
 	// 构建任务完成通知数据
 	notificationData := UnifiedNotificationData{
 		IsStep:       false, // 任务通知
+		CreatedBy:    task.CreatedByName,
 		ID:           task.ID,
 		Name:         task.Name,
 		ProjectName:  task.ProjectInfo.ProjectName + "-" + typeName,

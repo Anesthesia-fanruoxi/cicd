@@ -16,7 +16,8 @@ import (
 // UnifiedNotificationData 统一通知数据结构
 type UnifiedNotificationData struct {
 	// 通用字段
-	IsStep bool `json:"isset"` // true=步骤通知, false=任务通知
+	IsStep    bool   `json:"isset"` // true=步骤通知, false=任务通知
+	CreatedBy string `json:"created_by,omitempty"`
 
 	// 任务通知字段
 	ID           string `json:"id"`                      // 任务ID
@@ -268,7 +269,7 @@ func getNotifyURL() string {
 }
 
 // SendTaskNotification 发送任务级别通知（最终完成/取消/失败）
-func SendTaskNotification(taskID, name, projectName, taskType, startedAt, status string, updateFeishu, notifyFeishu string) error {
+func SendTaskNotification(taskID, name, projectName, taskType, startedAt, status, updateFeishu, notifyFeishu, createdByName string) error {
 	// 获取通知URL
 	notifyURL := getNotifyURL()
 	if notifyURL == "" {
@@ -291,6 +292,7 @@ func SendTaskNotification(taskID, name, projectName, taskType, startedAt, status
 	// 构建任务通知数据（IsStep=false）
 	notificationData := UnifiedNotificationData{
 		IsStep:       false,
+		CreatedBy:    createdByName,
 		ID:           taskID,
 		Name:         name,
 		ProjectName:  projectName,

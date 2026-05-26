@@ -30,10 +30,11 @@ type DoubleVersionProcessor struct {
 	proURL        string
 	stepDurations map[string]interface{}
 	taskLogger    *common.TaskLogger // 任务日志器
+	createdByName string             // 创建人名称
 }
 
 // NewDoubleVersionProcessor 创建双版本部署处理器
-func NewDoubleVersionProcessor(project, tag, projectName, taskID, deployType string, ctx context.Context, opsURL, proURL, createTime string, stepDurations map[string]interface{}) *DoubleVersionProcessor {
+func NewDoubleVersionProcessor(project, tag, projectName, taskID, deployType string, ctx context.Context, opsURL, proURL, createTime string, stepDurations map[string]interface{}, createdByName string) *DoubleVersionProcessor {
 	return &DoubleVersionProcessor{
 		project:       project,
 		tag:           tag,
@@ -46,6 +47,7 @@ func NewDoubleVersionProcessor(project, tag, projectName, taskID, deployType str
 		proURL:        proURL,
 		stepDurations: stepDurations,
 		taskLogger:    common.NewTaskLogger(taskID), // 创建任务日志器
+		createdByName: createdByName,
 	}
 }
 
@@ -116,11 +118,11 @@ func (r *DoubleVersionProcessor) ProcessDoubleVersionDeployment() error {
 		common.AppLogger.Info("项目使用单版本结构，部署流程在步骤13完成")
 		// 发送任务完成通知（任务级别）
 		endTime := time.Now().Format("2006-01-02 15:04:05")
-		if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL); err != nil {
+		if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL, r.createdByName); err != nil {
 			common.AppLogger.Error("发送任务完成通知失败:", err)
 		}
 		// 发送飞书完成通知
-		if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, "", r.projectName); err != nil {
+		if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, "", r.projectName, r.createdByName); err != nil {
 			common.AppLogger.Error("发送飞书卡片通知失败:", err)
 		}
 		common.AppLogger.Info("双版本部署请求处理完成", fmt.Sprintf("项目=%s, 标签=%s", r.project, r.tag))
@@ -156,11 +158,11 @@ func (r *DoubleVersionProcessor) ProcessDoubleVersionDeployment() error {
 
 	// 发送任务完成通知（任务级别）
 	endTime := time.Now().Format("2006-01-02 15:04:05")
-	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL); err != nil {
+	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL, r.createdByName); err != nil {
 		common.AppLogger.Error("发送任务完成通知失败:", err)
 	}
 	// 发送飞书完成通知
-	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, "", r.projectName); err != nil {
+	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, "", r.projectName, r.createdByName); err != nil {
 		common.AppLogger.Error("发送飞书卡片通知失败:", err)
 	}
 	common.AppLogger.Info("双版本部署请求处理完成", fmt.Sprintf("项目=%s, 标签=%s", r.project, r.tag))
@@ -191,7 +193,7 @@ func (r *DoubleVersionProcessor) step9PullOnline() error {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 9, "pullOnline", stepName, "cancel", "取消拉取在线镜像", r.project, r.tag)
 		// 任务级取消通知
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -262,7 +264,7 @@ func (r *DoubleVersionProcessor) step10TagImages() error {
 	select {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 10, "tagImages", stepName, "cancel", "取消标记镜像", r.project, r.tag)
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -320,7 +322,7 @@ func (r *DoubleVersionProcessor) step11PushLocal() error {
 	select {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 11, "pushLocal", stepName, "cancel", "取消推送本地镜像", r.project, r.tag)
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -379,7 +381,7 @@ func (r *DoubleVersionProcessor) step12CheckImage() error {
 	select {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 12, "checkImage", stepName, "cancel", "取消检查镜像", r.project, r.tag)
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -428,7 +430,7 @@ func (r *DoubleVersionProcessor) step13DeployService() error {
 	select {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 13, "deployService", stepName, "cancel", "取消应用服务部署", r.project, r.tag)
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -487,7 +489,7 @@ func (r *DoubleVersionProcessor) step14CheckServiceReady() error {
 	select {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 14, "checkService", stepName, "cancel", "取消检查服务就绪", r.project, r.tag)
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -539,7 +541,7 @@ func (r *DoubleVersionProcessor) step15TrafficSwitching() error {
 	select {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 15, "trafficSwitching", stepName, "cancel", "取消流量切换", r.project, r.tag)
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -615,7 +617,7 @@ func (r *DoubleVersionProcessor) step16CleanupOldVersion() error {
 	select {
 	case <-r.ctx.Done():
 		common.SendStepNotification(r.taskID, 16, "cleanupOldVersion", stepName, "cancel", "取消清理旧版本", r.project, r.tag)
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 		}
 		return r.ctx.Err()
@@ -655,12 +657,12 @@ func (r *DoubleVersionProcessor) sendFailureNotifications() {
 	endTime := time.Now().Format("2006-01-02 15:04:05")
 
 	// 发送任务失败通知
-	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL); notifyErr != nil {
+	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 		common.AppLogger.Error("发送任务失败通知失败:", notifyErr)
 	}
 
 	// 发送飞书失败通知
-	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, "", r.projectName); feishuErr != nil {
+	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, "", r.projectName, r.createdByName); feishuErr != nil {
 		common.AppLogger.Error("发送飞书失败通知失败:", feishuErr)
 	}
 }
@@ -670,12 +672,12 @@ func (r *DoubleVersionProcessor) sendCancelNotifications() {
 	endTime := time.Now().Format("2006-01-02 15:04:05")
 
 	// 发送任务取消通知
-	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 		common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 	}
 
 	// 发送飞书取消通知
-	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "cancel", r.startedAt, endTime, r.deployType, "", r.projectName); feishuErr != nil {
+	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "cancel", r.startedAt, endTime, r.deployType, "", r.projectName, r.createdByName); feishuErr != nil {
 		common.AppLogger.Error("发送飞书取消通知失败:", feishuErr)
 	}
 }

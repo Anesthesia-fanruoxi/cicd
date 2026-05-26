@@ -13,11 +13,13 @@ func IsCrmProject(projectName string) bool {
 
 // CreateTaskRequest 创建任务请求
 type CreateTaskRequest struct {
-	Project     string `json:"project"`      // 项目名称
-	Type        string `json:"type"`         // 任务类型（web/double/single等）
-	CallbackURL string `json:"callback_url"` // 回调地址
-	Category    string `json:"category"`     // 项目分类（用于多子项目）
-	Description string `json:"description"`  // 任务描述（可选，覆盖项目配置中的描述）
+	Project       string `json:"project"`         // 项目名称
+	Type          string `json:"type"`            // 任务类型（web/double/single等）
+	CallbackURL   string `json:"callback_url"`    // 回调地址
+	Category      string `json:"category"`        // 项目分类（用于多子项目）
+	Description   string `json:"description"`     // 任务描述（可选，覆盖项目配置中的描述）
+	CreatedBy     int    `json:"created_by"`      // 创建人ID
+	CreatedByName string `json:"created_by_name"` // 创建人名称
 }
 
 // TaskListItem 任务列表项
@@ -88,6 +90,8 @@ type Task struct {
 	Category      string             // 项目分类（用于多子项目）
 	Description   string             // 任务描述（请求传入，覆盖项目配置）
 	DownloadURL   string             // 构建产物下载地址（Web项目）
+	CreatedBy     int                // 创建人ID
+	CreatedByName string             // 创建人名称
 }
 
 // WorkerPool 工作线程池

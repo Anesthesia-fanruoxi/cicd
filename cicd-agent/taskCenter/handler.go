@@ -145,6 +145,7 @@ func HandleCallback(c *gin.Context) {
 				req.CreateTime,
 				req.StepDurations,
 				req.DownloadURL,
+				req.CreatedByName,
 			)
 			if err := processor.ProcessRemoteRequest(); err != nil {
 				common.AppLogger.Error("web构建处理失败:", fmt.Sprintf("项目=%s, 标签=%s, 错误=%v",
@@ -166,6 +167,7 @@ func HandleCallback(c *gin.Context) {
 				req.NotifyFeishuURL,
 				req.CreateTime,
 				req.StepDurations,
+				req.CreatedByName,
 			)
 			if err := processor.ProcessDoubleVersionDeployment(); err != nil {
 				common.AppLogger.Error("双版本java构建处理失败:", fmt.Sprintf("项目=%s, 标签=%s, 错误=%v",
@@ -188,6 +190,7 @@ func HandleCallback(c *gin.Context) {
 				req.NotifyFeishuURL,
 				req.CreateTime,
 				req.StepDurations,
+				req.CreatedByName,
 			)
 			if err := processor.ProcessSingleVersionDeployment(); err != nil {
 				common.AppLogger.Error("单版本java构建处理失败:", fmt.Sprintf("项目=%s, 标签=%s, 错误=%v",
@@ -239,11 +242,13 @@ func callRemoteAPI(req UpdateRequest) error {
 
 	// 构建远程调用请求
 	remoteReq := RemoteCallRequest{
-		Project:     req.Project,
-		CallbackURL: callbackURL,
-		Type:        req.Type,
-		Category:    req.Category,
-		Description: req.Description,
+		Project:       req.Project,
+		CallbackURL:   callbackURL,
+		Type:          req.Type,
+		Category:      req.Category,
+		Description:   req.Description,
+		CreatedBy:     req.CreatedBy,
+		CreatedByName: req.CreatedByName,
 	}
 
 	// 序列化请求

@@ -92,9 +92,32 @@ type NotificationConfig struct {
 
 // TrafficProxyConfig 流量代理配置
 type TrafficProxyConfig struct {
-	Enable bool     `yaml:"enable"`
-	JXH    []string `yaml:"jxh"`
-	YSH    []string `yaml:"ysh"`
+	Enable   bool                `yaml:"enable"`
+	Projects map[string][]string `yaml:"projects,omitempty"`
+}
+
+func (t *TrafficProxyConfig) UnmarshalYAML(value *yaml.Node) error {
+	var raw map[string]yaml.Node
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+
+	t.Projects = make(map[string][]string)
+	for key, node := range raw {
+		if key == "enable" {
+			if err := node.Decode(&t.Enable); err != nil {
+				return fmt.Errorf("解析 enable 字段失败: %w", err)
+			}
+			continue
+		}
+		// 其余 key 均为项目名 → URL 列表
+		var urls []string
+		if err := node.Decode(&urls); err != nil {
+			return fmt.Errorf("解析流量代理项目 %s 失败: %w", key, err)
+		}
+		t.Projects[key] = urls
+	}
+	return nil
 }
 
 var AppConfig *Config

@@ -2,10 +2,12 @@ package taskCenter
 
 // UpdateRequest 更新请求结构
 type UpdateRequest struct {
-	Project     string `json:"project" binding:"required"`
-	Type        string `json:"type"`
-	Category    string `json:"category,omitempty"`
-	Description string `json:"description,omitempty"`
+	Project       string `json:"project" binding:"required"`
+	Type          string `json:"type"`
+	Category      string `json:"category,omitempty"`
+	Description   string `json:"description,omitempty"`
+	CreatedBy     int    `json:"created_by,omitempty"`
+	CreatedByName string `json:"created_by_name,omitempty"`
 }
 
 // CallbackRequest 回调请求结构
@@ -22,16 +24,19 @@ type CallbackRequest struct {
 	UpdateFeishuURL string                 `json:"update_feishu"` // ops -> update
 	NotifyFeishuURL string                 `json:"notify_feishu"` // pro -> notify
 	StepDurations   map[string]interface{} `json:"step_durations"`
-	DownloadURL     string                 `json:"download_url"` // 构建产物下载地址（Web项目）
+	DownloadURL     string                 `json:"download_url"`    // 构建产物下载地址（Web项目）
+	CreatedByName   string                 `json:"created_by_name"` // 创建人名称
 }
 
 // RemoteCallRequest 远程调用请求结构
 type RemoteCallRequest struct {
-	Project     string `json:"project"`
-	CallbackURL string `json:"callback_url"`
-	Type        string `json:"type,omitempty"` // double/single/web
-	Category    string `json:"category,omitempty"`
-	Description string `json:"description,omitempty"`
+	Project       string `json:"project"`
+	CallbackURL   string `json:"callback_url"`
+	Type          string `json:"type,omitempty"` // double/single/web
+	Category      string `json:"category,omitempty"`
+	Description   string `json:"description,omitempty"`
+	CreatedBy     int    `json:"created_by,omitempty"`
+	CreatedByName string `json:"created_by_name,omitempty"`
 }
 
 // CancelRequest 取消任务请求结构

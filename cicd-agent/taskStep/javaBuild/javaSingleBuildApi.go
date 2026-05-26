@@ -26,10 +26,11 @@ type SingleVersionProcessor struct {
 	proURL        string
 	stepDurations map[string]interface{}
 	taskLogger    *common.TaskLogger // 任务日志器
+	createdByName string             // 创建人名称
 }
 
 // NewSingleVersionProcessor 创建单版本部署处理器
-func NewSingleVersionProcessor(project, category, tag, projectName, taskID, deployType string, ctx context.Context, opsURL, proURL, createTime string, stepDurations map[string]interface{}) *SingleVersionProcessor {
+func NewSingleVersionProcessor(project, category, tag, projectName, taskID, deployType string, ctx context.Context, opsURL, proURL, createTime string, stepDurations map[string]interface{}, createdByName string) *SingleVersionProcessor {
 	return &SingleVersionProcessor{
 		project:       project,
 		category:      category,
@@ -43,6 +44,7 @@ func NewSingleVersionProcessor(project, category, tag, projectName, taskID, depl
 		proURL:        proURL,
 		stepDurations: stepDurations,
 		taskLogger:    common.NewTaskLogger(taskID), // 创建任务日志器
+		createdByName: createdByName,
 	}
 }
 
@@ -111,12 +113,12 @@ func (r *SingleVersionProcessor) ProcessSingleVersionDeployment() error {
 	common.AppLogger.Info("单版本部署流程完成")
 	endTime := time.Now().Format("2006-01-02 15:04:05")
 
-	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL); err != nil {
+	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL, r.createdByName); err != nil {
 		common.AppLogger.Error("发送任务完成通知失败:", err)
 	}
 
 	// 发送飞书卡片通知
-	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, r.category, r.projectName); err != nil {
+	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); err != nil {
 		common.AppLogger.Error("发送飞书卡片通知失败:", err)
 	}
 	common.AppLogger.Info("单版本部署请求处理完成", fmt.Sprintf("项目=%s, 标签=%s, 分类=%s", r.project, r.tag, r.category))
@@ -417,12 +419,12 @@ func (r *SingleVersionProcessor) sendFailureNotifications() {
 	endTime := time.Now().Format("2006-01-02 15:04:05")
 
 	// 发送任务失败通知
-	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL); notifyErr != nil {
+	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 		common.AppLogger.Error("发送任务失败通知失败:", notifyErr)
 	}
 
 	// 发送飞书失败通知
-	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName); feishuErr != nil {
+	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); feishuErr != nil {
 		common.AppLogger.Error("发送飞书失败通知失败:", feishuErr)
 	}
 }
@@ -432,12 +434,12 @@ func (r *SingleVersionProcessor) sendCancelNotifications() {
 	endTime := time.Now().Format("2006-01-02 15:04:05")
 
 	// 发送任务取消通知
-	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); notifyErr != nil {
+	if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 		common.AppLogger.Error("发送任务取消通知失败:", notifyErr)
 	}
 
 	// 发送飞书取消通知
-	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "cancel", r.startedAt, endTime, r.deployType, r.category, r.projectName); feishuErr != nil {
+	if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "cancel", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); feishuErr != nil {
 		common.AppLogger.Error("发送飞书取消通知失败:", feishuErr)
 	}
 }

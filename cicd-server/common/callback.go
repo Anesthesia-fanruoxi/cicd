@@ -11,19 +11,20 @@ import (
 
 // CallbackData 回调数据结构
 type CallbackData struct {
-	Project       string             `json:"project"`                // 项目名称(非中文)
-	ProjectName   string             `json:"project_name"`           // 项目名称(中文)
-	Category      string             `json:"category"`               // 额外参数
-	Description   string             `json:"description"`            // 项目描述
-	Status        string             `json:"status"`                 // 任务状态
-	Tag           string             `json:"tag"`                    // 镜像tag
-	Type          string             `json:"type"`                   // 任务类型（web/double/single）
-	CreateTime    string             `json:"create_time"`            // 创建时间
-	UpdateFeishu  string             `json:"update_feishu"`          // 发版通知地址（替代ops飞书）
-	NotifyFeishu  string             `json:"notify_feishu"`          // 普通通知地址（替代pro飞书）
-	StepDurations map[string]float64 `json:"step_durations"`         // 每一步的耗时（秒）
-	TaskID        string             `json:"task_id"`                // 任务ID
-	DownloadURL   string             `json:"download_url,omitempty"` // 构建产物下载地址
+	Project       string             `json:"project"`                   // 项目名称(非中文)
+	ProjectName   string             `json:"project_name"`              // 项目名称(中文)
+	Category      string             `json:"category"`                  // 额外参数
+	Description   string             `json:"description"`               // 项目描述
+	Status        string             `json:"status"`                    // 任务状态
+	Tag           string             `json:"tag"`                       // 镜像tag
+	Type          string             `json:"type"`                      // 任务类型（web/double/single）
+	CreateTime    string             `json:"create_time"`               // 创建时间
+	UpdateFeishu  string             `json:"update_feishu"`             // 发版通知地址（替代ops飞书）
+	NotifyFeishu  string             `json:"notify_feishu"`             // 普通通知地址（替代pro飞书）
+	StepDurations map[string]float64 `json:"step_durations"`            // 每一步的耗时（秒）
+	TaskID        string             `json:"task_id"`                   // 任务ID
+	DownloadURL   string             `json:"download_url,omitempty"`    // 构建产物下载地址
+	CreatedByName string             `json:"created_by_name,omitempty"` // 创建人名称
 }
 
 // SendTaskCallback 发送任务完成回调
@@ -68,6 +69,11 @@ func SendTaskCallback(task *models.Task) error {
 	// 设置产物下载地址（Web项目）
 	if task.DownloadURL != "" {
 		callbackData.DownloadURL = task.DownloadURL
+	}
+
+	// 设置创建人名称
+	if task.CreatedByName != "" {
+		callbackData.CreatedByName = task.CreatedByName
 	}
 
 	// 序列化为JSON

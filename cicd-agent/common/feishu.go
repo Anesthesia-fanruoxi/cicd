@@ -59,14 +59,14 @@ type FeishuDivider struct {
 }
 
 // SendFeishuCard 发送飞书卡片通知
-func SendFeishuCard(webhookURL, project, tag, status, startTime, endTime, deployType, category, projectName string) error {
+func SendFeishuCard(webhookURL, project, tag, status, startTime, endTime, deployType, category, projectName, createdByName string) error {
 	if webhookURL == "" {
 		AppLogger.Info("飞书通知URL为空，跳过发送")
 		return nil
 	}
 
 	// 构建卡片消息
-	card := buildTaskCard(project, tag, status, startTime, endTime, deployType, category, projectName)
+	card := buildTaskCard(project, tag, status, startTime, endTime, deployType, category, projectName, createdByName)
 
 	// 序列化为JSON
 	jsonData, err := json.Marshal(card)
@@ -102,7 +102,7 @@ func getDeployTypeLabel(deployType string) string {
 }
 
 // buildTaskCard 构建任务卡片
-func buildTaskCard(project, tag, status, startTime, endTime, deployType, category, projectName string) FeishuCardMessage {
+func buildTaskCard(project, tag, status, startTime, endTime, deployType, category, projectName, createdByName string) FeishuCardMessage {
 	// 获取部署类型标签
 	typeLabel := getDeployTypeLabel(deployType)
 	typeSuffix := ""
@@ -173,8 +173,24 @@ func buildTaskCard(project, tag, status, startTime, endTime, deployType, categor
 		},
 	)
 
-	// 第三行：额外参数、当前版本/空白
-	// 额外参数字段
+	// 第三行：创建人、额外参数
+	// 创建人
+	var creatorContent string
+	if createdByName != "" {
+		creatorContent = fmt.Sprintf("**创建人**\n%s", createdByName)
+	} else {
+		creatorContent = "**创建人**\n-"
+	}
+
+	fields = append(fields, FeishuField{
+		IsShort: true,
+		Text: FeishuText{
+			Content: creatorContent,
+			Tag:     "lark_md",
+		},
+	})
+
+	// 额外参数
 	var categoryContent string
 	if category != "" {
 		categoryContent = fmt.Sprintf("**额外参数**\n%s", category)

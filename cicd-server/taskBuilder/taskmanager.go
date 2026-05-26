@@ -72,7 +72,7 @@ func randomString(tm *models.TaskManager, n int) string {
 
 // CreateTask 创建任务
 // taskType: 前端传递的任务类型（web/double/single）
-func CreateTask(name string, taskType string, callbackURL string, category string, description string) (*models.Task, error) {
+func CreateTask(name string, taskType string, callbackURL string, category string, description string, createdBy int, createdByName string) (*models.Task, error) {
 	tm := GetTaskManager()
 
 	tm.Mutex.Lock()
@@ -108,6 +108,8 @@ func CreateTask(name string, taskType string, callbackURL string, category strin
 		StepDurations: make(map[string]float64),
 		Category:      category,
 		Description:   description,
+		CreatedBy:     createdBy,
+		CreatedByName: createdByName,
 	}
 
 	// 将任务加入队列和任务列表

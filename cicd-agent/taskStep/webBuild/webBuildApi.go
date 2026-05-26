@@ -47,6 +47,7 @@ type RemoteProcessor struct {
 	taskID        string
 	deployType    string // 部署类型: web/single/double
 	downloadURL   string // 构建产物下载地址
+	createdByName string // 创建人名称
 	ctx           context.Context
 	startedAt     string
 	opsURL        string
@@ -56,7 +57,7 @@ type RemoteProcessor struct {
 }
 
 // NewRemoteProcessor 创建web构建remote处理器
-func NewRemoteProcessor(project, category, tag, projectName, taskID, deployType string, ctx context.Context, opsURL, proURL, createTime string, stepDurations map[string]interface{}, downloadURL string) *RemoteProcessor {
+func NewRemoteProcessor(project, category, tag, projectName, taskID, deployType string, ctx context.Context, opsURL, proURL, createTime string, stepDurations map[string]interface{}, downloadURL, createdByName string) *RemoteProcessor {
 	return &RemoteProcessor{
 		project:       project,
 		category:      category,
@@ -65,6 +66,7 @@ func NewRemoteProcessor(project, category, tag, projectName, taskID, deployType 
 		taskID:        taskID,
 		deployType:    deployType,
 		downloadURL:   downloadURL,
+		createdByName: createdByName,
 		ctx:           ctx,
 		startedAt:     createTime,
 		opsURL:        opsURL,
@@ -101,11 +103,11 @@ func (r *RemoteProcessor) ProcessRemoteRequest() error {
 		common.SendStepNotification(r.taskID, 7, "downProduct", "下载产物", "failed", err.Error(), r.project, r.tag)
 		// 发送任务失败通知
 		endTime := time.Now().Format("2006-01-02 15:04:05")
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送失败通知失败:", notifyErr)
 		}
 		// 发送飞书失败通知
-		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName); feishuErr != nil {
+		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); feishuErr != nil {
 			common.AppLogger.Error("发送飞书失败通知失败:", feishuErr)
 		}
 		return fmt.Errorf("下载产物失败: %v", err)
@@ -123,11 +125,11 @@ func (r *RemoteProcessor) ProcessRemoteRequest() error {
 		common.SendStepNotification(r.taskID, 8, "extractProduct", "解压产物", "failed", err.Error(), r.project, r.tag)
 		// 发送任务失败通知
 		endTime := time.Now().Format("2006-01-02 15:04:05")
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送失败通知失败:", notifyErr)
 		}
 		// 发送飞书失败通知
-		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName); feishuErr != nil {
+		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); feishuErr != nil {
 			common.AppLogger.Error("发送飞书失败通知失败:", feishuErr)
 		}
 		return fmt.Errorf("解压产物失败: %v", err)
@@ -145,11 +147,11 @@ func (r *RemoteProcessor) ProcessRemoteRequest() error {
 		common.SendStepNotification(r.taskID, 9, "backupCurrent", "备份当前版本", "failed", err.Error(), r.project, r.tag)
 		// 发送任务失败通知
 		endTime := time.Now().Format("2006-01-02 15:04:05")
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送失败通知失败:", notifyErr)
 		}
 		// 发送飞书失败通知
-		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName); feishuErr != nil {
+		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); feishuErr != nil {
 			common.AppLogger.Error("发送飞书失败通知失败:", feishuErr)
 		}
 		return fmt.Errorf("备份当前版本失败: %v", err)
@@ -177,11 +179,11 @@ func (r *RemoteProcessor) ProcessRemoteRequest() error {
 		}
 		// 发送任务失败通知
 		endTime := time.Now().Format("2006-01-02 15:04:05")
-		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL); notifyErr != nil {
+		if notifyErr := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "failed", r.opsURL, r.proURL, r.createdByName); notifyErr != nil {
 			common.AppLogger.Error("发送失败通知失败:", notifyErr)
 		}
 		// 发送飞书失败通知
-		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName); feishuErr != nil {
+		if feishuErr := common.SendFeishuCard(r.opsURL, r.project, r.tag, "failed", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); feishuErr != nil {
 			common.AppLogger.Error("发送飞书失败通知失败:", feishuErr)
 		}
 		return fmt.Errorf("部署新版本失败: %v", err)
@@ -193,12 +195,12 @@ func (r *RemoteProcessor) ProcessRemoteRequest() error {
 
 	// 发送任务完成通知
 	endTime := time.Now().Format("2006-01-02 15:04:05")
-	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL); err != nil {
+	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "complete", r.opsURL, r.proURL, r.createdByName); err != nil {
 		common.AppLogger.Error("发送任务完成通知失败:", err)
 	}
 
 	// 发送飞书完成通知
-	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, r.category, r.projectName); err != nil {
+	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "complete", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); err != nil {
 		common.AppLogger.Error("发送飞书卡片通知失败:", err)
 	}
 
@@ -267,12 +269,12 @@ func (r *RemoteProcessor) ProcessCancelRequest() error {
 	endTime := time.Now().Format("2006-01-02 15:04:05")
 
 	// 发送取消通知
-	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL); err != nil {
+	if err := common.SendTaskNotification(r.taskID, r.project, r.projectName, r.deployType, r.startedAt, "cancel", r.opsURL, r.proURL, r.createdByName); err != nil {
 		common.AppLogger.Error("发送取消通知失败:", err)
 	}
 
 	// 发送飞书取消通知
-	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "cancel", r.startedAt, endTime, r.deployType, r.category, r.projectName); err != nil {
+	if err := common.SendFeishuCard(r.opsURL, r.project, r.tag, "cancel", r.startedAt, endTime, r.deployType, r.category, r.projectName, r.createdByName); err != nil {
 		common.AppLogger.Error("发送飞书取消通知失败:", err)
 	}
 

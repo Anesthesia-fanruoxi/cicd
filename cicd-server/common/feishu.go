@@ -149,6 +149,13 @@ func buildTaskCreateCard(task *models.Task) FeishuCardMessage {
 			IsShort: true,
 			Text: FeishuText{
 				Tag:     "lark_md",
+				Content: fmt.Sprintf("**创建人**\n%s", task.CreatedByName),
+			},
+		},
+		{
+			IsShort: true,
+			Text: FeishuText{
+				Tag:     "lark_md",
 				Content: fmt.Sprintf("**任务ID**\n%s", task.ID),
 			},
 		},
@@ -277,6 +284,13 @@ func buildTaskCompleteCard(task *models.Task) FeishuCardMessage {
 			Text: FeishuText{
 				Tag:     "lark_md",
 				Content: fmt.Sprintf("**任务类型**\n%s", typeName),
+			},
+		},
+		{
+			IsShort: true,
+			Text: FeishuText{
+				Tag:     "lark_md",
+				Content: fmt.Sprintf("**创建人**\n%s", task.CreatedByName),
 			},
 		},
 		{

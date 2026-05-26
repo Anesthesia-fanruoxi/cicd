@@ -44,7 +44,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	// type: "web"->web池, "double"/"single"等->default池
 
 	// 创建任务
-	task, err := taskBuilder.CreateTask(req.Project, req.Type, req.CallbackURL, req.Category, req.Description)
+	task, err := taskBuilder.CreateTask(req.Project, req.Type, req.CallbackURL, req.Category, req.Description, req.CreatedBy, req.CreatedByName)
 	if err != nil {
 		responseJSON(w, common.ErrorResponse(500, "创建任务失败: "+err.Error()), http.StatusInternalServerError)
 		return
