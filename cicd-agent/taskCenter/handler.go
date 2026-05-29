@@ -257,14 +257,28 @@ func callRemoteAPI(req UpdateRequest) error {
 		return fmt.Errorf("序列化请求失败: %v", err)
 	}
 
-	//common.AppLogger.Info("发送到远程服务的URL:", config.AppConfig.Remote.UpdateURL)
-	common.AppLogger.Info("发送到远程服务的数据:", string(jsonData))
+	// 加密请求数据（AES-GCM + gzip）
+	encryptedData, err := common.CompressAndEncrypt(jsonData)
+	if err != nil {
+		return fmt.Errorf("加密请求数据失败: %v", err)
+	}
+
+	// 构建加密请求体
+	encryptedBody := map[string]string{
+		"data": encryptedData,
+	}
+	encryptedJson, err := json.Marshal(encryptedBody)
+	if err != nil {
+		return fmt.Errorf("序列化加密请求体失败: %v", err)
+	}
+
+	common.AppLogger.Info("发送到远程服务的数据(已加密):", config.AppConfig.Remote.UpdateURL)
 
 	// 发送HTTP请求
 	resp, err := http.Post(
 		config.AppConfig.Remote.UpdateURL,
 		"application/json",
-		bytes.NewBuffer(jsonData),
+		bytes.NewBuffer(encryptedJson),
 	)
 	if err != nil {
 		return fmt.Errorf("发送请求失败: %v", err)

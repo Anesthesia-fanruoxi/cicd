@@ -25,10 +25,27 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 解析请求体
-	var req models.CreateTaskRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	// 解析加密请求体
+	var encryptedReq struct {
+		Data string `json:"data"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&encryptedReq); err != nil {
 		responseJSON(w, common.ErrorResponse(400, "无效的请求参数"), http.StatusBadRequest)
+		return
+	}
+
+	// 解密请求数据
+	decryptedData, err := common.DecryptAndDecompress(encryptedReq.Data)
+	if err != nil {
+		common.Logger.Errorf("解密请求数据失败: %v", err)
+		responseJSON(w, common.ErrorResponse(400, "解密请求失败"), http.StatusBadRequest)
+		return
+	}
+
+	// 解析解密后的数据
+	var req models.CreateTaskRequest
+	if err := json.Unmarshal(decryptedData, &req); err != nil {
+		responseJSON(w, common.ErrorResponse(400, "解析请求数据失败"), http.StatusBadRequest)
 		return
 	}
 
