@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -147,7 +148,7 @@ func uploadToCMDB(task *models.Task, zipFile string,
 	}
 
 	// 添加目录字段
-	if err := multipartWriter.WriteField("dir", "cicd-product"); err != nil {
+	if err := multipartWriter.WriteField("dir", "cicdproduct"); err != nil {
 		return "", fmt.Errorf("写入dir字段失败: %v", err)
 	}
 
@@ -196,8 +197,13 @@ func uploadToCMDB(task *models.Task, zipFile string,
 		return "", fmt.Errorf("CMDB响应缺少download_url")
 	}
 
-	// CMDB返回的是相对路径，拼接host得到完整下载地址
-	fullDownloadURL := config.GetCMDBConfig().BaseURL + resp.Data.DownloadURL
+	// CMDB返回可能是完整URL或相对路径，需要判断
+	var fullDownloadURL string
+	if strings.HasPrefix(resp.Data.DownloadURL, "http://") || strings.HasPrefix(resp.Data.DownloadURL, "https://") {
+		fullDownloadURL = resp.Data.DownloadURL
+	} else {
+		fullDownloadURL = strings.TrimRight(config.GetCMDBConfig().BaseURL, "/") + "/" + strings.TrimLeft(resp.Data.DownloadURL, "/")
+	}
 
 	addTaskLog(task, fmt.Sprintf("上传成功, UUID: %s", resp.Data.UUID))
 

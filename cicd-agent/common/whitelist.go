@@ -2,11 +2,13 @@ package common
 
 import (
 	"cicd-agent/config"
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // IPWhitelist IP白名单管理器
@@ -27,6 +29,9 @@ func InitWhitelist() {
 
 	// 首次加载IP白名单
 	whitelist.updateIPs()
+
+	// 输出白名单信息
+	whitelist.logWhitelistInfo()
 
 	// 启动定时更新goroutine
 	go whitelist.startUpdateRoutine()
@@ -51,6 +56,8 @@ func (w *IPWhitelist) updateIPs() {
 	for _, ip := range ips {
 		w.allowedIPs[ip] = true
 	}
+
+	AppLogger.Info("IP白名单已更新，共", len(ips), "个IP:", fmt.Sprintf("%v", ips))
 }
 
 // startUpdateRoutine 启动定时更新routine
@@ -84,6 +91,19 @@ func (w *IPWhitelist) isAllowed(ip string) bool {
 // Stop 停止IP白名单更新
 func (w *IPWhitelist) Stop() {
 	close(w.stopChan)
+}
+
+// logWhitelistInfo 输出白名单信息
+func (w *IPWhitelist) logWhitelistInfo() {
+	w.mutex.RLock()
+	defer w.mutex.RUnlock()
+
+	var ips []string
+	for ip := range w.allowedIPs {
+		ips = append(ips, ip)
+	}
+
+	AppLogger.Info("IP白名单初始化完成", "共", len(ips), "个IP:", fmt.Sprintf("%v", ips))
 }
 
 // getClientIP 获取客户端真实IP
@@ -122,9 +142,10 @@ func IPWhitelistMiddleware() gin.HandlerFunc {
 		}
 
 		clientIP := getClientIP(c)
+		AppLogger.Info("收到请求", "方法:", c.Request.Method, "路径:", c.Request.URL.Path, "客户端IP:", clientIP)
 
 		if !whitelist.isAllowed(clientIP) {
-			AppLogger.Warning("未授权的IP访问:", clientIP)
+			AppLogger.Warning("IP不在白名单中，拒绝访问", "客户端IP:", clientIP, "请求路径:", c.Request.URL.Path)
 			// 返回404而不是403，隐藏服务存在
 			c.JSON(http.StatusNotFound, gin.H{
 				"code": 404,
@@ -134,7 +155,7 @@ func IPWhitelistMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		AppLogger.Info("允许IP访问:", clientIP)
+		AppLogger.Info("IP在白名单中，允许访问", "客户端IP:", clientIP)
 		c.Set("client_ip", clientIP)
 		c.Next()
 	}

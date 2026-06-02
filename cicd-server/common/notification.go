@@ -14,8 +14,8 @@ import (
 // UnifiedNotificationData 统一通知数据结构
 type UnifiedNotificationData struct {
 	// 通用字段
-	IsStep    bool   `json:"isset"` // true=步骤通知, false=任务通知
-	CreatedBy string `json:"created_by,omitempty"`
+	IsStep        bool   `json:"isset"`                     // true=步骤通知, false=任务通知
+	CreatedByName string `json:"created_by_name,omitempty"` // 创建人名称
 
 	// 任务通知字段
 	ID           string `json:"id"`                      // 任务ID
@@ -87,20 +87,20 @@ func NotifyTaskCreate(task *models.Task) error {
 
 	// 构建任务创建通知数据
 	notificationData := UnifiedNotificationData{
-		IsStep:       false, // 任务通知
-		CreatedBy:    task.CreatedByName,
-		ID:           task.ID,
-		Name:         task.Name,
-		ProjectName:  task.ProjectInfo.ProjectName + "-" + typeName,
-		Description:  description,
-		GitURL:       gitURL,
-		UpdateFeishu: task.ProjectInfo.UpdateFeishu,
-		NotifyFeishu: task.ProjectInfo.NotifyFeishu,
-		StartedAt:    startedAtStr,
-		Type:         task.Type, // 任务类型（web/double/single）
-		TypeName:     typeName,  // 任务类型中文名称
-		FinishedAt:   "",        // 创建时为空
-		Status:       "running",
+		IsStep:        false, // 任务通知
+		CreatedByName: task.CreatedByName,
+		ID:            task.ID,
+		Name:          task.Name,
+		ProjectName:   task.ProjectInfo.ProjectName + "-" + typeName,
+		Description:   description,
+		GitURL:        gitURL,
+		UpdateFeishu:  task.ProjectInfo.UpdateFeishu,
+		NotifyFeishu:  task.ProjectInfo.NotifyFeishu,
+		StartedAt:     startedAtStr,
+		Type:          task.Type, // 任务类型（web/double/single）
+		TypeName:      typeName,  // 任务类型中文名称
+		FinishedAt:    "",        // 创建时为空
+		Status:        "running",
 	}
 
 	// 序列化为JSON
@@ -166,20 +166,20 @@ func NotifyTaskComplete(task *models.Task) error {
 
 	// 构建任务完成通知数据
 	notificationData := UnifiedNotificationData{
-		IsStep:       false, // 任务通知
-		CreatedBy:    task.CreatedByName,
-		ID:           task.ID,
-		Name:         task.Name,
-		ProjectName:  task.ProjectInfo.ProjectName + "-" + typeName,
-		Description:  description,
-		GitURL:       gitURL,
-		UpdateFeishu: task.ProjectInfo.UpdateFeishu,
-		NotifyFeishu: task.ProjectInfo.NotifyFeishu,
-		StartedAt:    task.StartedAt.Format("2006-01-02 15:04:05"),
-		Type:         task.Type, // 任务类型（web/double/single）
-		TypeName:     typeName,  // 任务类型中文名称
-		FinishedAt:   task.FinishedAt.Format("2006-01-02 15:04:05"),
-		Status:       status,
+		IsStep:        false, // 任务通知
+		CreatedByName: task.CreatedByName,
+		ID:            task.ID,
+		Name:          task.Name,
+		ProjectName:   task.ProjectInfo.ProjectName + "-" + typeName,
+		Description:   description,
+		GitURL:        gitURL,
+		UpdateFeishu:  task.ProjectInfo.UpdateFeishu,
+		NotifyFeishu:  task.ProjectInfo.NotifyFeishu,
+		StartedAt:     task.StartedAt.Format("2006-01-02 15:04:05"),
+		Type:          task.Type, // 任务类型（web/double/single）
+		TypeName:      typeName,  // 任务类型中文名称
+		FinishedAt:    task.FinishedAt.Format("2006-01-02 15:04:05"),
+		Status:        status,
 	}
 
 	// 序列化为JSON

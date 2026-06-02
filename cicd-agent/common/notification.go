@@ -16,8 +16,8 @@ import (
 // UnifiedNotificationData 统一通知数据结构
 type UnifiedNotificationData struct {
 	// 通用字段
-	IsStep    bool   `json:"isset"` // true=步骤通知, false=任务通知
-	CreatedBy string `json:"created_by,omitempty"`
+	IsStep        bool   `json:"isset"`                     // true=步骤通知, false=任务通知
+	CreatedByName string `json:"created_by_name,omitempty"` // 创建人名称
 
 	// 任务通知字段
 	ID           string `json:"id"`                      // 任务ID
@@ -291,19 +291,19 @@ func SendTaskNotification(taskID, name, projectName, taskType, startedAt, status
 
 	// 构建任务通知数据（IsStep=false）
 	notificationData := UnifiedNotificationData{
-		IsStep:       false,
-		CreatedBy:    createdByName,
-		ID:           taskID,
-		Name:         name,
-		ProjectName:  projectName,
-		Type:         taskType,
-		TypeName:     typeName,
-		StartedAt:    startedAt,
-		FinishedAt:   time.Now().Format("2006-01-02 15:04:05"),
-		Status:       normStatus,
-		Remote:       "agent",
-		UpdateFeishu: updateFeishu,
-		NotifyFeishu: notifyFeishu,
+		IsStep:        false,
+		CreatedByName: createdByName,
+		ID:            taskID,
+		Name:          name,
+		ProjectName:   projectName,
+		Type:          taskType,
+		TypeName:      typeName,
+		StartedAt:     startedAt,
+		FinishedAt:    time.Now().Format("2006-01-02 15:04:05"),
+		Status:        normStatus,
+		Remote:        "agent",
+		UpdateFeishu:  updateFeishu,
+		NotifyFeishu:  notifyFeishu,
 	}
 
 	// 序列化为JSON
@@ -312,7 +312,7 @@ func SendTaskNotification(taskID, name, projectName, taskType, startedAt, status
 		return fmt.Errorf("序列化任务通知数据失败: %v", err)
 	}
 
-	//AppLogger.Info(fmt.Sprintf("发送的JSON数据: %s", string(jsonData)))
+	AppLogger.Info(fmt.Sprintf("任务通知加密前数据: %s", string(jsonData)))
 
 	// 加密和压缩数据
 	encryptedData, err := CompressAndEncrypt(jsonData)
