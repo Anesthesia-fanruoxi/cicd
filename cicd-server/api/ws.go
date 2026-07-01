@@ -78,6 +78,7 @@ func TaskLogWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.Unmarshal(decryptedData, &params); err != nil {
+		common.Logger.Errorf("WebSocket解析参数失败: %v, 原始数据: %s", err, string(decryptedData))
 		http.Error(w, "解析参数失败", http.StatusBadRequest)
 		return
 	}
@@ -159,6 +160,10 @@ func buildLogFilePath(projectName, taskID, stepType, taskType string) string {
 	if err == nil {
 		// 使用任务名称作为工作目录名称
 		actualProjectName = task.Name
+		// web项目的工作目录是 {project}-web
+		if task.Type == "web" && !strings.Contains(actualProjectName, "-web") {
+			actualProjectName = actualProjectName + "-web"
+		}
 	} else {
 		// 任务不存在时，使用传入的type参数来推断项目目录
 		if taskType == "web" && !strings.Contains(projectName, "-web") {

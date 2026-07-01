@@ -9,17 +9,21 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
 // Config 全局配置结构体
 type Config struct {
-	Logs     LogConfig      `mapstructure:"logs"`
-	Database DatabaseConfig `mapstructure:"database"`
-	CMDB     CMDBConfig     `mapstructure:"cmdb"`
-	CICD     CICDConfig     `mapstructure:"cicd"`
-	// 其他配置项将来可以在这里添加
+	Logs         LogConfig           `mapstructure:"logs"`
+	Database     DatabaseConfig      `mapstructure:"database"`
+	CMDB         CMDBConfig          `mapstructure:"cmdb"`
+	CICD         CICDConfig          `mapstructure:"cicd"`
+	ProductRules map[string][]string `mapstructure:"product_rules"`
 }
+
+// 项目名 -> 产品类型的反向索引（启动时构建）
+var projectTypeMap map[string]string
 
 // LogConfig 日志配置结构体
 type LogConfig struct {
@@ -217,4 +221,71 @@ func GetCMDBNotifyURL() string {
 		return ""
 	}
 	return cfg.BaseURL + cfg.NotifyURL
+}
+
+// InitProductRules 初始化产品规则配置（支持热更新）
+// 产品规则在 config.yml 的 product_rules 字段中配置
+func InitProductRules() error {
+	if viperInstance == nil {
+		return fmt.Errorf("viper 实例未初始化，请先调用 InitConfig")
+	}
+
+	// 构建反向索引
+	buildProjectTypeMap()
+
+	// 热更新监听
+	viperInstance.WatchConfig()
+	viperInstance.OnConfigChange(func(e fsnotify.Event) {
+		log.Printf("[INFO] 配置文件变更: %s", e.Name)
+		var newConfig Config
+		if err := viperInstance.Unmarshal(&newConfig); err != nil {
+			log.Printf("[ERROR] 重新解析配置失败: %v", err)
+			return
+		}
+		GlobalConfig = newConfig
+		buildProjectTypeMap()
+		// 热更新日志由 main.go 通过回调输出
+		if onProductRulesChange != nil {
+			onProductRulesChange()
+		}
+	})
+
+	return nil
+}
+
+// onProductRulesChange 热更新回调（由 main.go 设置）
+var onProductRulesChange func()
+
+// SetOnProductRulesChange 设置产品规则热更新回调
+func SetOnProductRulesChange(fn func()) {
+	onProductRulesChange = fn
+}
+
+// GetProductRules 获取产品规则配置
+func GetProductRules() map[string][]string {
+	return GlobalConfig.ProductRules
+}
+
+// GetProjectTypeMap 获取项目名→产品类型的反向索引
+func GetProjectTypeMap() map[string]string {
+	return projectTypeMap
+}
+
+// buildProjectTypeMap 从 ProductRules 构建项目名→产品类型的反向索引
+func buildProjectTypeMap() {
+	projectTypeMap = make(map[string]string)
+	for productType, projects := range GlobalConfig.ProductRules {
+		for _, project := range projects {
+			projectTypeMap[project] = productType
+		}
+	}
+}
+
+// GetProductType 根据项目名获取产品类型
+func GetProductType(projectName string) (string, bool) {
+	if projectTypeMap == nil {
+		return "", false
+	}
+	productType, exists := projectTypeMap[projectName]
+	return productType, exists
 }

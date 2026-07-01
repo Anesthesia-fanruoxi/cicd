@@ -48,6 +48,17 @@ func main() {
 	}
 	common.Logger.Info("项目配置加载完成")
 
+	// 加载产品规则配置（支持热更新）
+	if err := config.InitProductRules(); err != nil {
+		log.Fatalf("加载产品规则配置失败: %v", err)
+	}
+	logProductRules("产品规则配置加载完成")
+
+	// 设置热更新回调
+	config.SetOnProductRulesChange(func() {
+		logProductRules("产品规则配置已热更新")
+	})
+
 	// 初始化路由
 	mux := router.InitRouter()
 
@@ -86,4 +97,15 @@ func main() {
 	}
 
 	common.Logger.Info("CICD服务器已关闭！")
+}
+
+// logProductRules 以分组格式输出产品规则
+func logProductRules(title string) {
+	productRules := config.GetProductRules()
+	projectTypeMap := config.GetProjectTypeMap()
+	common.Logger.Infof("===== %s (共 %d 个项目) =====", title, len(projectTypeMap))
+	for productType, projects := range productRules {
+		common.Logger.Infof("  %s: %v", productType, projects)
+	}
+	common.Logger.Infof("====================================")
 }

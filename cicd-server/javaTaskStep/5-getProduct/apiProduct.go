@@ -1,6 +1,7 @@
 package getProduct
 
 import (
+	"cicd-server/config"
 	"cicd-server/models"
 	"fmt"
 )
@@ -20,26 +21,27 @@ func ExecuteProductAPI(task *models.Task, projectName, gitCloneDir, productDir, 
 
 	addTaskLog(task, fmt.Sprintf("开始获取项目 %s 的产物", projectName))
 
-	// 根据项目名称路由到对应的处理函数
-	switch projectName {
-	case "jxh", "axh", "bjjf", "ysh", "mhg":
-		// 默认Java项目类型
+	// 从配置文件获取产品类型
+	productType, exists := config.GetProductType(projectName)
+	if !exists {
+		return fmt.Errorf("项目 %s 未配置产品类型，请在 config/product_rules.json 中添加", projectName)
+	}
+
+	// 根据产品类型路由到对应的处理函数
+	switch productType {
+	case "default":
 		return ExecuteDefaultProduct(task, projectName, gitCloneDir, productDir, taskLogDir, addTaskLog, executeCommand)
-	case "jxh-risk", "ysh-risk":
-		// Risk项目类型
+	case "risk":
 		return ExecuteRiskProduct(task, projectName, gitCloneDir, productDir, taskLogDir, addTaskLog, executeCommand)
-	case "jxh-dh":
-		// 贷后项目类型
+	case "dh":
 		return ExecuteDhProduct(task, projectName, gitCloneDir, productDir, taskLogDir, addTaskLog, executeCommand)
-	case "bjjf-crm", "axh-crm":
-		// CRM项目类型
+	case "crm":
 		return ExecuteCrmProduct(task, projectName, gitCloneDir, productDir, taskLogDir, addTaskLog, executeCommand)
 	case "scfq":
 		return ExecuteScfqProduct(task, projectName, gitCloneDir, productDir, taskLogDir, addTaskLog, executeCommand)
-	case "jzsk":
-		// 大数据项目类型
+	case "bigdata":
 		return ExecuteBigDataProduct(task, projectName, gitCloneDir, productDir, taskLogDir, addTaskLog, executeCommand)
 	default:
-		return fmt.Errorf("暂不支持项目: %s", projectName)
+		return fmt.Errorf("项目 %s 的产品类型 %s 未注册处理函数，请检查代码", projectName, productType)
 	}
 }

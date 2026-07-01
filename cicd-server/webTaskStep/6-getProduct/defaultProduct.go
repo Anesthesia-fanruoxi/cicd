@@ -147,14 +147,19 @@ func uploadToCMDB(task *models.Task, zipFile string,
 		return "", fmt.Errorf("写入文件到form失败: %v", err)
 	}
 
-	// 添加目录字段
-	if err := multipartWriter.WriteField("dir", "cicdproduct"); err != nil {
-		return "", fmt.Errorf("写入dir字段失败: %v", err)
+	// 添加category字段
+	if err := multipartWriter.WriteField("category", "cicd"); err != nil {
+		return "", fmt.Errorf("写入category字段失败: %v", err)
 	}
 
 	// 添加公开文件标识（CICD产物使用公开下载）
 	if err := multipartWriter.WriteField("is_private", "false"); err != nil {
 		return "", fmt.Errorf("写入is_private字段失败: %v", err)
+	}
+
+	// 添加来源字段
+	if err := multipartWriter.WriteField("source", "cicd"); err != nil {
+		return "", fmt.Errorf("写入source字段失败: %v", err)
 	}
 
 	// 关闭multipart writer（写入结尾boundary）
@@ -204,6 +209,8 @@ func uploadToCMDB(task *models.Task, zipFile string,
 	} else {
 		fullDownloadURL = strings.TrimRight(config.GetCMDBConfig().BaseURL, "/") + "/" + strings.TrimLeft(resp.Data.DownloadURL, "/")
 	}
+
+	addTaskLog(task, fmt.Sprintf("完整下载地址: %s", fullDownloadURL))
 
 	addTaskLog(task, fmt.Sprintf("上传成功, UUID: %s", resp.Data.UUID))
 
