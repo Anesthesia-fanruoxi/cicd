@@ -79,19 +79,49 @@ func HandleUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{Code: 200, Msg: "远程API调用成功"})
 }
 
+// resolveCallbackPayload 解析回调报文
+// 支持 cicd-server 的 v1 全局盐加密报文（{"data":"..."}）；
+// allowPlaintext 仅用于兼容旧版 agent 解密后转发的明文回调
+func resolveCallbackPayload(body []byte, allowPlaintext bool) ([]byte, error) {
+	var encrypted struct {
+		Data string `json:"data"`
+	}
+	if err := json.Unmarshal(body, &encrypted); err == nil && encrypted.Data != "" {
+		decrypted, err := common.DecryptAndDecompress(encrypted.Data)
+		if err != nil {
+			return nil, fmt.Errorf("解密回调数据失败: %v", err)
+		}
+		return decrypted, nil
+	}
+	if allowPlaintext {
+		return body, nil
+	}
+	return nil, fmt.Errorf("回调报文未加密")
+}
+
 // HandleCallback 处理回调请求
 func HandleCallback(c *gin.Context) {
 	// 记录原始回调数据
 	body, _ := c.GetRawData()
 	// common.AppLogger.Info("收到回调请求，原始数据:", string(body))
 
-	// 重新设置请求体
+	// 解密后重新设置请求体
 	c.Request.Body = http.NoBody
-	if len(body) > 0 {
-		c.Request.Body = io.NopCloser(bytes.NewReader(body))
+	allowPlaintext := config.AppConfig != nil && config.AppConfig.Callback.AllowPlaintext
+	payload, err := resolveCallbackPayload(body, allowPlaintext)
+	if err != nil {
+		common.AppLogger.Error("回调数据处理失败:", err)
+		c.JSON(http.StatusBadRequest, Response{
+			Code: 400,
+			Msg:  err.Error(),
+		})
+		return
+	}
+	if len(payload) > 0 {
+		c.Request.Body = io.NopCloser(bytes.NewReader(payload))
 	}
 
-	// 直接解析明文回调请求
+	// 解析回调请求
 	var req CallbackRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.AppLogger.Error("请求参数绑定失败:", err)

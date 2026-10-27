@@ -54,8 +54,9 @@ type SSHConfig struct {
 
 // CallbackConfig 回调配置
 type CallbackConfig struct {
-	Domain string `yaml:"domain"`
-	Path   string `yaml:"path"`
+	Domain         string `yaml:"domain"`
+	Path           string `yaml:"path"`
+	AllowPlaintext bool   `yaml:"allow_plaintext"` // 兼容旧版 agent 解密后转发的明文回调，迁移完成后应保持 false
 }
 
 // WebConfig Web部署配置
