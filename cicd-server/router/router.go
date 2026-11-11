@@ -20,8 +20,8 @@ func InitRouter() *http.ServeMux {
 	mux.HandleFunc("/api/config/update", api.UpdateProjectConfig)
 	mux.HandleFunc("/api/config/batch-update", api.BatchUpdateProjectConfig)
 
-	// WebSocket接口
-	mux.HandleFunc("/ws/cicd/logs", api.TaskLogWebSocket)
+	// SSE日志接口
+	mux.HandleFunc("/sse/cicd/logs", api.TaskLogSSE)
 
 	common.Logger.Info("API路由注册完成")
 	return mux

@@ -8,7 +8,7 @@ import (
 )
 
 // ExecuteWebPack 执行Web项目打包
-func ExecuteWebPack(task *models.Task, nodeVersion, gitCloneDir, logDir, timeDir, taskLogDir string,
+func ExecuteWebPack(task *models.Task, Version, gitCloneDir, logDir, timeDir, taskLogDir string,
 	addTaskLog func(*models.Task, string),
 	executeCommand func(*models.Task, string) error,
 	executeCommandWithLog func(*models.Task, string, string) error,
@@ -25,7 +25,7 @@ func ExecuteWebPack(task *models.Task, nodeVersion, gitCloneDir, logDir, timeDir
 	addTaskLog(task, "开始Web项目打包")
 
 	// 获取Node镜像
-	nodeImage := getNodeImage(nodeVersion)
+	nodeImage := getNodeImage(Version)
 	addTaskLog(task, fmt.Sprintf("使用Node镜像: %s", nodeImage))
 
 	// 创建npm build命令，根据category动态选择工作目录
