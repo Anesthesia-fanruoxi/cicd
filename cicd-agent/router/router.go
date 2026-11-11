@@ -47,8 +47,5 @@ func SetupRouter() *gin.Engine {
 		})
 	})
 
-	// WebSocket日志查看接口
-	r.GET("/ws/task/logs", common.TaskLogWebSocket)
-
 	return r
 }

@@ -203,7 +203,7 @@ func CheckImages(ctx context.Context, images []string, projectName string, tag s
 		if taskLogger != nil {
 			taskLogger.WriteStep("checkImage", "ERROR", errMsg)
 		}
-		return fmt.Errorf(errMsg)
+		return fmt.Errorf("%s", errMsg)
 	}
 
 	return nil

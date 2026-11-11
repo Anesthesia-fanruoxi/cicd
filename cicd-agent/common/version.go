@@ -165,8 +165,8 @@ func GetVersion(project string) (string, error) {
 
 	// 优先尝试从远程接口获取
 	if remoteVersion, err := getRemoteCurrentVersion(ctx, project); err == nil {
-		return remoteVersion, nil
 		AppLogger.Info(fmt.Sprintf("远程获取版本成功: %s", remoteVersion))
+		return remoteVersion, nil
 	} else {
 		AppLogger.Info(fmt.Sprintf("远程获取版本失败，回退到本地读取: %v", err))
 	}
